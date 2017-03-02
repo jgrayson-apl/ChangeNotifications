@@ -1,0 +1,143 @@
+html {
+  height                   : 100%;
+  font-size                : 100%;
+  -webkit-text-size-adjust : 100%;
+  -moz-text-size-adjust    : 100%;
+  -ms-text-size-adjust     : 100%;
+}
+
+body {
+  min-height : 100%;
+  margin     : 0;
+}
+
+body * {
+  outline : none;
+}
+
+.container-height {
+  /*height : 700px !important;*/
+  height : calc(100vh - 150px) !important;
+}
+
+.items-panel {
+  /*height   : 450px !important;*/
+  height   : 50vh !important;
+  overflow : auto;
+  border   : solid 1px #eee;
+}
+
+.items-panel:empty::after {
+  display    : block;
+  font-size  : 2em;
+  margin-top : 2em;
+  text-align : center;
+  color      : #999;
+  content    : 'No Items';
+}
+
+/* BROWSEITEMS WIDGET */
+#browse-content-node {
+  overflow : hidden !important;
+}
+
+.esri-browseitems .dgrid-grid.dgrid {
+  height     : 100%;
+  max-height : unset;
+}
+
+.esri-browseitems .gallery .template-info-panel {
+  box-shadow : none;
+  display    : none;
+}
+
+.esri-browseitems.showing .gallery .template-info-panel {
+  display : inline-block;
+}
+
+#viewDiv {
+  height     : 100%;
+  margin     : 0;
+  padding    : 0;
+  box-shadow : 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+#user-thumb-node {
+  height         : 36px;
+  border-radius  : 18px;
+  vertical-align : middle;
+}
+
+#items-list-node .card-wide-image-wrap {
+  width : 200px !important;
+}
+
+.crumb {
+  cursor : pointer;
+}
+
+#changes-node {
+  padding : 10px;
+}
+
+#legend-node {
+  padding    : 10px;
+  max-height : calc(100vh - 200px) !important;
+}
+
+.expand-container .esri-expand__container {
+  padding : 3px !important;
+}
+
+.esri-layer-list {
+  background-color : #fff;
+}
+
+.esri-print__container {
+  max-height : unset;
+}
+
+#living-atlas-dropdown-btn {
+  padding : 0 !important;
+}
+
+.btn-smaller {
+  font-size   : 0.75rem !important;
+  line-height : 1.25rem !important;
+  padding     : 0.15rem 0.35rem !important;
+}
+
+.card-image-caption img {
+  vertical-align : middle;
+  margin-right   : 5px;
+}
+
+.selected-basemap {
+  position    : absolute;
+  top         : 5px;
+  left        : 5px;
+  font-size   : 25pt;
+  color       : limegreen;
+  text-shadow : 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+#toggle-left-panel-node {
+  width : 32px !important;
+}
+
+#toggle-left-panel {
+  cursor : pointer;
+}
+
+#toggle-left-panel:hover {
+  color : #0079c1;
+}
+
+.ui-layout {
+  /*...*/
+}
+
+#fetch-changes-btn.btn-disabled {
+  cursor : wait !important;
+}
+
