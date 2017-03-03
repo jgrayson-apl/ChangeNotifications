@@ -345,6 +345,8 @@ define([
 
           // MAP DETAILS //
           this.displayMapDetails(view, this.portal);
+          // EDIT IN ARCGIS.COM //
+          this.initializeEditButton(view, this.portal);
 
         }.bind(this), console.warn);
       }.bind(this);
@@ -361,6 +363,8 @@ define([
 
           // MAP DETAILS //
           this.displayMapDetails(view);
+          // EDIT IN ARCGIS.COM //
+          this.initializeEditButton(view);
 
         }.bind(this));
       }.bind(this);
@@ -410,6 +414,7 @@ define([
     /* ============================================================================================================= */
 
     /**
+     * INITIALIZE CHANGE NOTIFICATIONS
      *
      * @param view
      */
@@ -420,9 +425,10 @@ define([
       // INITIALIZE CHANGE EXTENTS LAYERS //
       this.initializeChangeExtentsLayer(view);
 
-      // ADD FEATURE LAYERS TO CHANGE LAYER SELECT //
+      // ADD MAP FEATURE LAYERS TO CHANGE LAYER SELECT //
       const changeLayerSelect = dom.byId("changeLayerSelect");
       view.map.layers.filter(function (layer) {
+        // FEATURELAYER THAT ARE NOT SOURCE BASED...
         return ((layer.type === "feature") && layer.url != null);
       }).forEach(function (featureLayer) {
         // ADD SELECT OPTION FOR THE FEATURE LAYER //
@@ -432,6 +438,12 @@ define([
       // SET CHANGE LAYER //
       this.setChangeNotificationLayer = function (layerId) {
         this.changeNotificationLayer = view.map.findLayerById(layerId);
+      }.bind(this);
+      // GET CHANGE LAYER URL //
+      this.getChangeNotificationLayerUrl = function () {
+        console.info(this.changeNotificationLayer);
+
+        return this.changeNotificationLayer ? this.changeNotificationLayer.url : null;
       }.bind(this);
 
       on(changeLayerSelect, "change", function () {
@@ -467,6 +479,35 @@ define([
     },
 
     /**
+     * EDIT MAP/LAYER IN ARCGIS.COM - DISABLE IF NOT SIGNED IN
+     *
+     * @param view
+     * @param portal
+     */
+    initializeEditButton: function (view, portal) {
+
+      // DISABLE IF NOT SIGNED IN //
+      domClass.toggle(dom.byId("edit-map-btn"), "btn-disabled", (portal == null));
+      
+      // EDIT IN ARCGIS.COM //
+      on(dom.byId("edit-map-btn"), "click", function () {
+        if(portal) {
+          let editInArcGISUrl = lang.replace("//{urlKey}.{customBaseUrl}/home/webmap/viewer.html?webmap={id}&isAdmin=true", {
+            urlKey: portal.urlKey,
+            customBaseUrl: portal.customBaseUrl,
+            id: view.map.portalItem.id
+          });
+          window.open(editInArcGISUrl);
+        } else {
+          console.warn("Not signed in but somehow button is enabled ???");
+        }
+      }.bind(this));
+
+    },
+
+    /**
+     * INITIALIZE CHANGE EXTENTS LAYER - A SOURCE BASED FEATURE LAYER WITH
+     * UVRENDERER TO DISTINGUISH FULL AND INDIVIDUAL CHANGES
      *
      * @param view
      */
@@ -528,13 +569,21 @@ define([
 
     },
 
+    /**
+     * TOGGLE THE FETCH BUTTON - DISABLE WHILE FETCHING CHANGES AND IF USING UPDATE INTERVAL
+     *
+     * @param disable
+     */
     toggleFetchButton: function (disable) {
+      // HMM... DON'T LIKE THIS... //
       domClass.toggle(dom.byId("fetch-changes-btn"), "btn-disabled", disable && (this.updateInterval > 0));
     },
 
     /**
+     * UPDATE STATUS MESSAGE AND OPTIONALLY TOGGLE DOWNLOAD ICON NEXT TO MESSAGE
      *
      * @param msg
+     * @param showIcon
      */
     updateStatus: function (msg, showIcon) {
       dom.byId("change-status").innerHTML = msg || "";
@@ -542,21 +591,24 @@ define([
     },
 
     /**
-     *
+     *  RESET - UPDATE THE CHANGES TRACKING INFO AND CLEAR CHANGE EXTENTS
      */
     resetChangesTrackingInfo: function () {
       this.updateChangeTrackingInfo().then(this.getChanges.bind(this));
     },
 
     /**
+     * UPDATE CHANGE TRACKING INFO
      *
      * @returns {Promise}
      */
     updateChangeTrackingInfo: function () {
       return this.getChangeTrackingInfo().then(function (changeTrackingInfo) {
         if(changeTrackingInfo) {
-          dom.byId("last-update-label").innerHTML = (new Date()).toLocaleString();
+          // DEFAULT LAYER SERVER GENS //
           this.defaultLayerServerGens = changeTrackingInfo.layerServerGens;
+          // UPDATE LAST UPDATE LABEL //
+          dom.byId("last-update-label").innerHTML = (new Date()).toLocaleString();
           this.updateStatus("Change notifications ready.");
         } else {
           this.updateStatus("Warning: change tracking info not available for this layer.");
@@ -565,11 +617,13 @@ define([
     },
 
     /**
+     * GET CHANGE TRACKING INFO FROM FEATURE LAYER
+     * TODO: LOOK AT URL AND DETERMINE IF WE NEED FURTHER PARSING - /FeatureServer or /FeatureServer/ or /FeatureServer/0
      *
      * @returns {Promise}
      */
     getChangeTrackingInfo: function () {
-      return esriRequest(this.changeNotificationLayer.url, {
+      return esriRequest(this.getChangeNotificationLayerUrl(), {
         query: {
           f: "json",
           returnUpdates: true
@@ -580,7 +634,7 @@ define([
     },
 
     /**
-     *
+     *  CHECK FOR CHANGES
      */
     getChanges: function () {
       if(this.defaultLayerServerGens) {
@@ -589,9 +643,9 @@ define([
         this.toggleFetchButton(true);
 
         // EXTRACT CHANGES //
-        this.extractChanges().then(function (response) {
+        this._extractChanges().then(function (response) {
           if(response.statusUrl) {
-            this.getJobInfo(response.statusUrl).then(this.getJobInfoCallback.bind(this));
+            this._getJobInfo(response.statusUrl).then(this._getJobInfoCallback.bind(this));
           } else {
             this.updateStatus("Warning: unable to get changes status url...");
           }
@@ -602,11 +656,13 @@ define([
     },
 
     /**
+     * EXTRACT CHANGES FROM FOR THE FEATURE LAYER
+     * TODO: LOOK AT URL AND DETERMINE IF WE NEED FURTHER PARSING - /FeatureServer or /FeatureServer/ or /FeatureServer/0
      *
      * @returns {Promise}
      */
-    extractChanges: function () {
-      return esriRequest(this.changeNotificationLayer.url + "/extractChanges", {
+    _extractChanges: function () {
+      return esriRequest(this.getChangeNotificationLayerUrl() + "/extractChanges", {
         query: {
           f: "json",
           layers: JSON.stringify([this.changeNotificationLayer.layerId]),
@@ -628,11 +684,12 @@ define([
     },
 
     /**
+     * GET JOB STATUS
      *
      * @param statusUrl
      * @returns {Promise}
      */
-    getJobInfo: function (statusUrl) {
+    _getJobInfo: function (statusUrl) {
       return esriRequest(statusUrl, {
         query: {
           f: "json",
@@ -640,33 +697,34 @@ define([
         }
       }).then(function (response) {
         return {
-          response: response,
+          response: response.data,
           statusUrl: statusUrl
         };
       });
     },
 
     /**
+     * CHECK JOB STATUS AND WHEN COMPLETE UPDATE CHANGE EXTENTS
      *
      * @param res
      */
-    getJobInfoCallback: function (res) {
+    _getJobInfoCallback: function (res) {
       let response = res.response;
       let statusUrl = res.statusUrl;
 
-      if(response.data.status === "Completed") {
-        this.updateStatus("Checking for changes...", true);
-        let resultUrl = response.data.resultUrl;
-
-        this.getExtentChanges(resultUrl).then(function (response) {
-          //console.log("getExtentChanges: ", response);
-          let fullChangesExtent = response.fullChangesExtent;
+      // JOB COMPLETE //
+      if(response.status === "Completed") {
+        this.updateStatus("Retrieving changes...", true);
+        // GET CHANGE EXTENTS //
+        this.getChangesExtents(response.resultUrl).then(function (resultsResponse) {
+          //console.log("getExtentChanges: ", resultsResponse);
+          let fullChangesExtent = resultsResponse.fullChangesExtent;
           if(fullChangesExtent) {
             this.updateStatus("Changes found.");
             // DISPLAY FULL CHANGES EXTENT //
             this.showFullChangesExtent(fullChangesExtent);
             // DISPLAY EACH EDIT EXTENT //
-            response.edits.forEach(function (edit) {
+            resultsResponse.edits.forEach(function (edit) {
               if(edit.changesExtent) {
                 this.showChangesExtent(edit.changesExtent);
               }
@@ -677,25 +735,27 @@ define([
             // CLEAR CHANGES EXTENTS //
             this.clearChangesExtentsGraphics();
           }
-          // ENABLE BUTTON //
+          // ENABLE FETCH BUTTON //
           this.toggleFetchButton(false);
 
         }.bind(this));
       } else {
+        // JOB IS NOT COMPLETE SO WE PAUSE AND CHECK AGAIN //
         this.updateStatus("Checking for changes...", true);
         setTimeout(function () {
-          this.getJobInfo(statusUrl).then(this.getJobInfoCallback.bind(this));
+          this._getJobInfo(statusUrl).then(this._getJobInfoCallback.bind(this));
         }.bind(this), 750);
       }
     },
 
     /**
+     * USE JOB RESULTS URL TO RETRIEVE CHANGE EXTENTS
      *
-     * @param url
+     * @param jobResultUrl
      * @returns {Promise}
      */
-    getExtentChanges: function (url) {
-      return esriRequest(url, {
+    getChangesExtents: function (jobResultUrl) {
+      return esriRequest(jobResultUrl, {
         query: { f: "json" },
         useProxy: true
       }).then(function (response) {
@@ -704,6 +764,7 @@ define([
     },
 
     /**
+     * DISPLAY FULL CHANGES EXTENT
      *
      * @param extentJson
      */
@@ -716,6 +777,7 @@ define([
     },
 
     /**
+     * DISPLAY CHANGE EXTENT
      *
      * @param extentJson
      * @param type
@@ -727,7 +789,6 @@ define([
         attributes: { type: type || "changes-extent" }
       });
       this.addChangesExtentGraphics(extentGraphic);
-
     }
 
   });
