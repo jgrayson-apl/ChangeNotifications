@@ -459,7 +459,8 @@ define([
       const updateIntervalSelect = dom.byId("updateIntervalSelect");
       this.updateInterval = +updateIntervalSelect.value;
       this.updateIntervalHandle = -1;
-      on(updateIntervalSelect, "change", function () {
+      // UPDATE INTERVAL CHANGED //
+      this.updateIntervalChanged = function () {
         this.updateInterval = +updateIntervalSelect.value;
         clearInterval(this.updateIntervalHandle);
         if(this.updateInterval > 0) {
@@ -467,7 +468,15 @@ define([
           this.updateIntervalHandle = setInterval(this.getChanges.bind(this), this.updateInterval);
         }
         this.toggleFetchButton((this.updateInterval > 0));
-      }.bind(this));
+      }.bind(this);
+      // RESET UPDATE INTERVAL //
+      this.resetUpdateInterval = function () {
+        updateIntervalSelect.value = 0;
+        this.updateIntervalChanged();
+      }.bind(this);
+      // UPDATE INTERVAL CHANGED BY USER //
+      on(updateIntervalSelect, "change", this.updateIntervalChanged);
+
 
       // RESET TIME TO NOW //
       on(dom.byId("reset-changes-link"), "click", this.resetChangesTrackingInfo.bind(this));
@@ -580,6 +589,7 @@ define([
      *  RESET - UPDATE THE CHANGES TRACKING INFO AND CLEAR CHANGE EXTENTS
      */
     resetChangesTrackingInfo: function () {
+      this.resetUpdateInterval();
       this.updateChangeTrackingInfo().then(this.getChanges.bind(this));
     },
 
