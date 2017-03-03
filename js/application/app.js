@@ -414,51 +414,11 @@ define([
      * @param view
      */
     initializeChangeNotifications: function (view) {
+      // TODO: don't make view global...
+      this.view = view;
 
-      if(!this.updatesFeatureLayer) {
-        this.updatesFeatureLayer = new FeatureLayer({
-          id: "updates-layer",
-          title: "Change Notifications",
-          legendEnabled: false,
-          geometryType: "polygon",
-          spatialReference: view.spatialReference,
-          source: [],
-          objectIdField: "ObjectID",
-          fields: [
-            {
-              name: "ObjectID",
-              alias: "ObjectID",
-              type: "oid"
-            }
-          ],
-          renderer: new UniqueValueRenderer({
-            field: "type",
-            defaultSymbol: new SimpleFillSymbol({
-              color: Color.named.red,
-              outline: { color: Color.named.red, width: 1.0 }
-            }),
-            uniqueValueInfos: [
-              {
-                value: "full-changes-extent",
-                label: "All Changes",
-                symbol: new SimpleFillSymbol({
-                  color: Color.named.transparent,
-                  outline: { color: Color.named.white, type: "dash", width: 3.0 }
-                })
-              },
-              {
-                value: "changes-extent",
-                label: "A Change",
-                symbol: new SimpleFillSymbol({
-                  color: Color.named.red.concat(0.25),
-                  outline: { color: Color.named.darkred, width: 1.5 }
-                })
-              }
-            ]
-          })
-        });
-        view.map.add(this.updatesFeatureLayer);
-      }
+      // INITIALIZE CHANGE EXTENTS LAYERS //
+      this.initializeChangeExtentsLayer(view);
 
       // ADD FEATURE LAYERS TO CHANGE LAYER SELECT //
       const changeLayerSelect = dom.byId("changeLayerSelect");
@@ -501,9 +461,70 @@ define([
       // FETCH CHANGES //
       on(dom.byId("fetch-changes-btn"), "click", this.getChanges.bind(this));
 
-      // GET CHANGE TRACKING INFO //
-      this.view = view; // TODO: don't make view global...
+      // GET INITIAL CHANGE TRACKING INFO //
       this.updateChangeTrackingInfo();
+
+    },
+
+    /**
+     *
+     * @param view
+     */
+    initializeChangeExtentsLayer: function (view) {
+
+      // CHANGE EXTENTS FEATURE LAYER //
+      let changeExtentsFeatureLayer = new FeatureLayer({
+        id: "updates-layer",
+        title: "Change Notifications",
+        legendEnabled: false,
+        geometryType: "polygon",
+        spatialReference: view.spatialReference,
+        source: [],
+        objectIdField: "ObjectID",
+        fields: [
+          {
+            name: "ObjectID",
+            alias: "ObjectID",
+            type: "oid"
+          }
+        ],
+        renderer: new UniqueValueRenderer({
+          field: "type",
+          defaultSymbol: new SimpleFillSymbol({
+            color: Color.named.red,
+            outline: { color: Color.named.red, width: 1.0 }
+          }),
+          uniqueValueInfos: [
+            {
+              value: "full-changes-extent",
+              label: "All Changes",
+              symbol: new SimpleFillSymbol({
+                color: Color.named.transparent,
+                outline: { color: Color.named.white, type: "dash", width: 3.0 }
+              })
+            },
+            {
+              value: "changes-extent",
+              label: "A Change",
+              symbol: new SimpleFillSymbol({
+                color: Color.named.red.concat(0.25),
+                outline: { color: Color.named.darkred, width: 1.5 }
+              })
+            }
+          ]
+        })
+      });
+      view.map.add(changeExtentsFeatureLayer);
+
+      // ADD CHANGE EXTENT //
+      this.addChangesExtentGraphics = function (changeExtentGraphic) {
+        changeExtentsFeatureLayer.source.add(changeExtentGraphic);
+      }.bind(this);
+
+      // CLEAR CHANGE EXTENTS //
+      this.clearChangesExtentsGraphics = function () {
+        changeExtentsFeatureLayer.source.removeAll();
+      }.bind(this);
 
     },
 
@@ -652,7 +673,8 @@ define([
           } else {
             // NO CHANGES //
             this.updateStatus("No changes found.");
-            this.updatesFeatureLayer.source.removeAll();
+            // CLEAR CHANGES EXTENTS //
+            this.clearChangesExtentsGraphics();
           }
           // ENABLE BUTTON //
           this.toggleFetchButton(false);
@@ -685,8 +707,10 @@ define([
      * @param extentJson
      */
     showFullChangesExtent: function (extentJson) {
+      // UPDATE CHANGES NOTIFICATION LAYER //
       this.changeNotificationLayer.definitionExpression = "1=1";
-      this.updatesFeatureLayer.source.removeAll();
+      // CLEAR CHANGES EXTENTS //
+      this.clearChangesExtentsGraphics();
       this.showChangesExtent(extentJson, "full-changes-extent")
     },
 
@@ -701,7 +725,8 @@ define([
         geometry: Polygon.fromExtent(new Extent(extentJson)),
         attributes: { type: type || "changes-extent" }
       });
-      this.updatesFeatureLayer.source.add(extentGraphic);
+      this.addChangesExtentGraphics(extentGraphic);
+
     }
 
   });
