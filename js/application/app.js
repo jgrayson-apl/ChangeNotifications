@@ -345,8 +345,6 @@ define([
 
           // MAP DETAILS //
           this.displayMapDetails(view, this.portal);
-          // EDIT IN ARCGIS.COM //
-          this.initializeEditButton(view, this.portal);
 
         }.bind(this), console.warn);
       }.bind(this);
@@ -363,8 +361,6 @@ define([
 
           // MAP DETAILS //
           this.displayMapDetails(view);
-          // EDIT IN ARCGIS.COM //
-          this.initializeEditButton(view);
 
         }.bind(this));
       }.bind(this);
@@ -412,6 +408,8 @@ define([
     },
 
     /* ============================================================================================================= */
+    /* CHANGE NOTIFICATIONS                                                                                          */
+    /* ============================================================================================================= */
 
     /**
      * INITIALIZE CHANGE NOTIFICATIONS
@@ -428,27 +426,32 @@ define([
       // ADD MAP FEATURE LAYERS TO CHANGE LAYER SELECT //
       const changeLayerSelect = dom.byId("changeLayerSelect");
       view.map.layers.filter(function (layer) {
-        // FEATURELAYER THAT ARE NOT SOURCE BASED...
+        // FEATURELAYERS THAT ARE NOT SOURCE BASED //
+        // TODO: CHECK CAPABILITIES FOR 'ChangeTracking'...
         return ((layer.type === "feature") && layer.url != null);
       }).forEach(function (featureLayer) {
         // ADD SELECT OPTION FOR THE FEATURE LAYER //
         domConstruct.create("option", { value: featureLayer.id, innerHTML: featureLayer.title }, changeLayerSelect);
       }.bind(this));
 
-      // SET CHANGE LAYER //
+      // SET NOTIFICATION CHANGE LAYER BY FINDING IN MAP BASED ON SELECED LAYER ID //
       this.setChangeNotificationLayer = function (layerId) {
         this.changeNotificationLayer = view.map.findLayerById(layerId);
       }.bind(this);
+
       // GET CHANGE LAYER URL //
       this.getChangeNotificationLayerUrl = function () {
+        // TODO: LOOK AT URL AND DETERMINE IF WE NEED FURTHER PARSING 
+        // TODO: FOR THIS USE CASE WE NEED /FeatureServer, BUT COULD URL BE /FeatureServer/ or /FeatureServer/0 ???
         console.info(this.changeNotificationLayer);
-
         return this.changeNotificationLayer ? this.changeNotificationLayer.url : null;
       }.bind(this);
 
+      // UPDATE NOTIFICATIONS LAYER //
       on(changeLayerSelect, "change", function () {
         this.setChangeNotificationLayer(changeLayerSelect.value);
       }.bind(this));
+      // SET INITIAL NOTIFICATIONS LAYER //
       this.setChangeNotificationLayer(changeLayerSelect.value);
 
 
@@ -466,42 +469,25 @@ define([
         this.toggleFetchButton((this.updateInterval > 0));
       }.bind(this));
 
-
       // RESET TIME TO NOW //
       on(dom.byId("reset-changes-link"), "click", this.resetChangesTrackingInfo.bind(this));
 
       // FETCH CHANGES //
       on(dom.byId("fetch-changes-btn"), "click", this.getChanges.bind(this));
 
-      // GET INITIAL CHANGE TRACKING INFO //
-      this.updateChangeTrackingInfo();
-
-    },
-
-    /**
-     * EDIT MAP/LAYER IN ARCGIS.COM - DISABLE IF NOT SIGNED IN
-     *
-     * @param view
-     * @param portal
-     */
-    initializeEditButton: function (view, portal) {
-
-      // DISABLE IF NOT SIGNED IN //
-      domClass.toggle(dom.byId("edit-map-btn"), "btn-disabled", (portal == null));
-      
       // EDIT IN ARCGIS.COM //
       on(dom.byId("edit-map-btn"), "click", function () {
-        if(portal) {
-          let editInArcGISUrl = lang.replace("//{urlKey}.{customBaseUrl}/home/webmap/viewer.html?webmap={id}&isAdmin=true", {
-            urlKey: portal.urlKey,
-            customBaseUrl: portal.customBaseUrl,
-            id: view.map.portalItem.id
-          });
-          window.open(editInArcGISUrl);
-        } else {
-          console.warn("Not signed in but somehow button is enabled ???");
-        }
+        let editInArcGISUrl = lang.replace("//{urlKey}.{customBaseUrl}/home/webmap/viewer.html?webmap={id}&isAdmin={isAdmin}", {
+          isAdmin: (this.portal.user != null),
+          urlKey: this.portal.user ? this.portal.urlKey : "www",
+          customBaseUrl: this.portal.user ? this.portal.customBaseUrl : "arcgis.com",
+          id: view.map.portalItem.id
+        });
+        window.open(editInArcGISUrl);
       }.bind(this));
+
+      // GET INITIAL CHANGE TRACKING INFO //
+      this.updateChangeTrackingInfo();
 
     },
 
@@ -618,7 +604,7 @@ define([
 
     /**
      * GET CHANGE TRACKING INFO FROM FEATURE LAYER
-     * TODO: LOOK AT URL AND DETERMINE IF WE NEED FURTHER PARSING - /FeatureServer or /FeatureServer/ or /FeatureServer/0
+     * - URL SHOULD BE TO /FeatureServer
      *
      * @returns {Promise}
      */
@@ -657,7 +643,7 @@ define([
 
     /**
      * EXTRACT CHANGES FROM FOR THE FEATURE LAYER
-     * TODO: LOOK AT URL AND DETERMINE IF WE NEED FURTHER PARSING - /FeatureServer or /FeatureServer/ or /FeatureServer/0
+     * - URL SHOULD BE TO /FeatureServer
      *
      * @returns {Promise}
      */
