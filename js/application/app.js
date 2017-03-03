@@ -366,6 +366,7 @@ define([
       }.bind(this);
 
       // CALCITE CLICK EVENT //
+      // ...WE COULD HAVE USED dojo/on //
       let calciteClick = calcite.click();
       calcite.addEvent(signInNode, calciteClick, userSignIn);
       calcite.addEvent(signOutNode, calciteClick, userSignOut);
@@ -484,8 +485,8 @@ define([
       this.updateInterval = +updateIntervalSelect.value;
       this.updateIntervalHandle = -1;
       on(updateIntervalSelect, "change", function () {
-        clearInterval(this.updateIntervalHandle);
         this.updateInterval = +updateIntervalSelect.value;
+        clearInterval(this.updateIntervalHandle);
         if(this.updateInterval > 0) {
           this.getChanges();
           this.updateIntervalHandle = setInterval(this.getChanges.bind(this), this.updateInterval);
@@ -507,7 +508,7 @@ define([
     },
 
     toggleFetchButton: function (disable) {
-      domClass.toggle(dom.byId("fetch-changes-btn"), "btn-disabled", disable || (this.updateInterval > 0));
+      domClass.toggle(dom.byId("fetch-changes-btn"), "btn-disabled", disable && (this.updateInterval > 0));
     },
 
     /**
