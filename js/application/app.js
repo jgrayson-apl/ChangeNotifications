@@ -411,19 +411,6 @@ define([
     /**
      *
      * @param view
-     * @returns {*}
-     * @private
-     */
-    _whenLayersLoaded: function (view) {
-      return promiseUtils.eachAlways(view.map.layers.map(function (layer) {
-        // TODO: WHAT IF LAYER IS ALREADY LOADED?
-        return watchUtils.whenTrueOnce(layer, "loaded");
-      }));
-    },
-
-    /**
-     *
-     * @param view
      */
     initializeChangeNotifications: function (view) {
 
@@ -472,9 +459,6 @@ define([
         view.map.add(this.updatesFeatureLayer);
       }
 
-      // WAIT FOR LAYERS TO BE LOADED //
-      //this._whenLayersLoaded(view).then(function () {
-
       // ADD FEATURE LAYERS TO CHANGE LAYER SELECT //
       const changeLayerSelect = dom.byId("changeLayerSelect");
       view.map.layers.filter(function (layer) {
@@ -519,8 +503,6 @@ define([
       // GET CHANGE TRACKING INFO //
       this.view = view; // TODO: don't make view global...
       this.updateChangeTrackingInfo();
-
-      //}.bind(this));
 
     },
 
