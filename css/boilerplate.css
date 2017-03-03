@@ -133,11 +133,3 @@ body * {
   color : #0079c1;
 }
 
-.ui-layout {
-  /*...*/
-}
-
-#fetch-changes-btn.btn-disabled {
-  cursor : wait !important;
-}
-

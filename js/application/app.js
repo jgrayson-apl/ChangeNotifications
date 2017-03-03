@@ -536,8 +536,9 @@ define([
      *
      * @param msg
      */
-    updateStatus: function (msg) {
+    updateStatus: function (msg, showIcon) {
       dom.byId("change-status").innerHTML = msg || "";
+      domClass.toggle(dom.byId("change-status"), "icon-ui-download", (showIcon != null));
     },
 
     /**
@@ -654,7 +655,7 @@ define([
       let statusUrl = res.statusUrl;
 
       if(response.data.status === "Completed") {
-        this.updateStatus("...");
+        this.updateStatus("Checking for changes...", true);
         let resultUrl = response.data.resultUrl;
 
         this.getExtentChanges(resultUrl).then(function (response) {
@@ -681,7 +682,7 @@ define([
 
         }.bind(this));
       } else {
-        this.updateStatus("Checking for changes...");
+        this.updateStatus("Checking for changes...", true);
         setTimeout(function () {
           this.getJobInfo(statusUrl).then(this.getJobInfoCallback.bind(this));
         }.bind(this), 750);
