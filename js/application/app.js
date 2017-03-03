@@ -292,7 +292,6 @@ define([
       }, domConstruct.create("div", { className: "expand-container" }));
       view.ui.add(basemapGalleryExpand, "top-right");
 
-
       //
       // WIDGETS IN TAB PANES //
       //
@@ -408,7 +407,7 @@ define([
     },
 
     /* ============================================================================================================= */
-    /* CHANGE NOTIFICATIONS                                                                                          */
+    /* TRACK HOSTED FEATURE LAYER CHANGES  - Dev Summit 2017 -                                                       */
     /* ============================================================================================================= */
 
     /**
@@ -417,7 +416,6 @@ define([
      * @param view
      */
     initializeChangeNotifications: function (view) {
-      // TODO: don't make view global...
       this.view = view;
 
       // INITIALIZE CHANGE EXTENTS LAYERS //

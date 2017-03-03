@@ -33,7 +33,23 @@
         <a class="js-modal-toggle right icon-ui-close" href="#" aria-label="close-modal"></a>
         <h3 class='trailer-half'>Track Feature Layer Changes</h3>
         <p>Use this app to track changes to hosted feature layers in your map.</p>
-        <p>Source code for this application is available on <a href="https://github.com/jgrayson-apl/ChangeNotifications" target="_blank">GitHub</a></p>
+        <div>This application is built using:
+          <ul>
+            <li>
+              <a href="https://developers.arcgis.com/javascript/" target="_blank">Esri ArcGIS API for Javascript 4.x</a>
+            </li>
+            <li>
+              <a href="https://github.com/Esri/application-boilerplate-js" target="_blank">Esri Application Boilerplate Template</a>
+            </li>
+            <li>
+              <a href="http://esri.github.io/calcite-web/" target="_blank">Esri Calcite Web framework</a>
+            </li>
+          </ul>
+        </div>
+        <p>Source code is available on GitHub:
+          <a href="https://github.com/jgrayson-apl/ChangeNotifications" target="_blank">Application</a> |
+          <a href="https://github.com/jgrayson-apl/ChangeNotifications/blob/master/js/application/app.js#L411" target="_blank">Track Feature Layer Changes</a>
+        </p>
         <div class="text-right">
           <button class="btn js-modal-toggle">OK</button>
         </div>
@@ -151,11 +167,10 @@
                         Layer:
                         <select id="changeLayerSelect" class="select-full"></select>
                         <span class="avenir-italic text-dark-gray font-size--3">
-                          Showing changes since
-                          <span id="last-update-label"></span>
+                          Showing change since <span id="last-update-label"></span>
                         </span>
                         <div class="right">
-                          <a id="reset-changes-link"class="text-blue font-size--3" href="#" title="Reset the time from which to display changes...">Reset time to now</a>
+                          <a id="reset-changes-link" class="text-blue font-size--3" href="#" title="Reset the time from which to display changes...">Reset time to now</a>
                         </div>
                       </label>
                       <label>
@@ -168,7 +183,7 @@
                           <option value="60000">60 seconds</option>
                         </select>
                       </label>
-                      <button id="fetch-changes-btn" class="btn btn-fill btn-large icon-ui-refresh trailer-half">Retrieve Current Changes</button>
+                      <button id="fetch-changes-btn" class="btn btn-fill btn-large icon-ui-refresh trailer-half">Retrieve Changes</button>
                     </div>
                     <div class="panel trailer-1">
                       <div id="change-status" class="text-blue"></div>
