@@ -91,6 +91,8 @@ body * {
 
 .esri-layer-list {
   background-color : #fff;
+  width            : unset;
+  max-height       : unset;
 }
 
 .esri-print__container {

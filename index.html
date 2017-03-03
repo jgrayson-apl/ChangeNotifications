@@ -68,7 +68,7 @@
                 <div id="current-map-card-caption" class="card-image-caption text-right font-size--3"></div>
               </figure>
               <div class="card-content">
-                <h4><a id="current-map-card-title" href="" target="_blank"></a></h4>
+                <h4><a id="current-map-card-title" href="" target="_blank" title="Open details page..."></a></h4>
                 <p id="current-map-card-description" class="card-last font-size--3"></p>
               </div>
             </div>
@@ -98,7 +98,7 @@
                   <span class="icon-ui-down"></span>
                 </button>
                 <nav class="dropdown-menu" role="menu">
-                  <span class="dropdown-title">Map</span>
+                  <span class="dropdown-title">Content</span>
                   <a href="#opt-1" class="dropdown-link" role="menu-item">Option 1</a>
                   <a href="#opt-2" class="dropdown-link" role="menu-item">Option 2</a>
                   <a href="#opt-3" class="dropdown-link" role="menu-item">Option 3</a>
@@ -110,17 +110,17 @@
             </nav>
 
             <!-- APP DETAILS -->
-            <nav id="app-details-node" class="top-nav-list right" role="navigation">
+            <nav id="app-details-node" class="top-nav-list right" role="navigation" title="About">
               <a class="top-nav-link icon-ui-description margin-left-1 js-modal-toggle" data-modal="app-details-dialog" href="#"></a>
             </nav>
 
             <!-- SIGN IN NODE -->
-            <nav id="sign-in-node" class="top-nav-list right" role="navigation" aria-labelledby="usernav">
+            <nav id="sign-in-node" class="top-nav-list right" role="navigation" aria-labelledby="usernav" title="Sign In">
               <a class="top-nav-link icon-ui-user margin-left-1" href="#">Sign In</a>
             </nav>
 
             <!-- USER NODE -->
-            <div id="user-node" class="dropdown js-dropdown right hide">
+            <div id="user-node" class="dropdown js-dropdown right hide" title="Signed In User">
               <a class="top-nav-link icon-ui-user margin-left-1 js-dropdown-toggle" tabindex="0" aria-haspopup="true" aria-expanded="false" href="#">
                 <span id="user-firstname-node"></span>
               </a>
@@ -167,7 +167,8 @@
                         Layer:
                         <select id="changeLayerSelect" class="select-full"></select>
                         <span class="avenir-italic text-dark-gray font-size--3">
-                          Showing change since <span id="last-update-label"></span>
+                          <span>Showing change since</span>
+                          <span id="last-update-label"></span>
                         </span>
                         <div class="right">
                           <a id="reset-changes-link" class="text-blue font-size--3" href="#" title="Reset the time from which to display changes...">Reset time to now</a>
