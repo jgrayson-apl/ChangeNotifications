@@ -764,7 +764,7 @@ define([
      */
     showFullChangesExtent: function (extentJson) {
       // UPDATE CHANGES NOTIFICATION LAYER //
-      this.changeNotificationLayer.definitionExpression = "1=1";
+      this.changeNotificationLayer.definitionExpression = lang.replace("{0}={0}", [(new Date()).valueOf()]);
       // CLEAR CHANGES EXTENTS //
       this.clearChangesExtentsGraphics();
       this.showChangesExtent(extentJson, "full-changes-extent")
