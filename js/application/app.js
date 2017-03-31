@@ -50,6 +50,7 @@ define([
   "esri/widgets/Legend",
   "esri/widgets/Print",
   "esri/widgets/ScaleBar",
+  "esri/widgets/Compass",
   "esri/widgets/BasemapGallery",
   "esri/widgets/Expand",
   "dojo/domReady!"
@@ -57,18 +58,9 @@ define([
              dom, domAttr, domClass, domGeom, domConstruct, ConfirmDialog,
              esriRequest, Graphic, IdentityManager, watchUtils, promiseUtils, Portal,
              Extent, Polygon, Layer, FeatureLayer, SimpleRenderer, UniqueValueRenderer, SimpleFillSymbol,
-             Home, Search, LayerList, Legend, Print, ScaleBar, BasemapGallery, Expand) {
+             Home, Search, LayerList, Legend, Print, ScaleBar, Compass, BasemapGallery, Expand) {
 
   return declare(null, {
-
-    constructor: function () {
-      calcite.init();
-    },
-
-    /*
-     "webmap": "230cbe4142254ebb8bc032279ab0ce2c",
-     "webscene": "c1ef258749254c219a622feada62d1da",
-     */
 
     config: null,
     direction: null,
@@ -250,15 +242,30 @@ define([
       // WIDGETS IN VIEW UI //
       //
 
-      view.constraints = { rotationEnabled: false };
-
-      // SCALEBAR //
-      const scaleBar = new ScaleBar({ view: view, unit: "dual" });
-      view.ui.add(scaleBar, { position: "bottom-left" });
+      // LEFT PANE TOGGLE //
+      const toggleLeftPaneNode = domConstruct.create("div", { title: "Toggle Left Panel", className: "toggle-pane-node esri-icon-expand" });
+      view.ui.add(toggleLeftPaneNode, { position: "top-left", index: 0 });
+      on(toggleLeftPaneNode, "click", function () {
+        query(".ui-layout-left").toggleClass("hide");
+        query(".ui-layout-center").toggleClass("column-18");
+        query(".ui-layout-center").toggleClass("column-24");
+        domClass.toggle(toggleLeftPaneNode, "esri-icon-collapse");
+        domClass.toggle(toggleLeftPaneNode, "esri-icon-expand");
+      }.bind(this));
 
       // HOME //
       const homeWidget = new Home({ view: view });
       view.ui.add(homeWidget, { position: "top-left", index: 1 });
+
+      // COMPASS //
+      if(view.type === "2d") {
+        const compass = new Compass({ view: view });
+        view.ui.add(compass, "top-left");
+      }
+
+      // SCALEBAR //
+      const scaleBar = new ScaleBar({ view: view, unit: "dual" });
+      view.ui.add(scaleBar, { position: "bottom-left" });
 
       //
       // WIDGETS IN EXPAND //
@@ -275,7 +282,7 @@ define([
         content: searchWidget.domNode,
         expandIconClass: "esri-icon-search",
         expandTooltip: "Search"
-      }, domConstruct.create("div", { className: "expand-container" }));
+      }, domConstruct.create("div"));
       view.ui.add(toolsExpand, "top-right");
 
       // BASEMAP GALLERY //
@@ -289,7 +296,7 @@ define([
         content: basemapGallery.domNode,
         expandIconClass: "esri-icon-basemap",
         expandTooltip: "Basemap"
-      }, domConstruct.create("div", { className: "expand-container" }));
+      }, domConstruct.create("div"));
       view.ui.add(basemapGalleryExpand, "top-right");
 
       //
@@ -297,7 +304,48 @@ define([
       //
 
       // LAYER LIST //
-      const layerList = new LayerList({ view: view }, "layer-list-node");
+      // LAYER LIST //
+      const layerList = new LayerList({
+        view: view,
+        createActionsFunction: function (evt) {
+          let item = evt.item;
+
+          let fullExtentAction = {
+            id: "full-extent",
+            title: "Go to full extent",
+            className: "esri-icon-zoom-out-fixed"
+          };
+
+          let informationAction = {
+            id: "information",
+            title: "Layer information",
+            className: "esri-icon-description"
+          };
+
+          let layerActions = [];
+          if(item.layer) {
+            layerActions.push(fullExtentAction);
+            if(item.layer.url) {
+              layerActions.push(informationAction);
+            }
+          }
+
+          return [layerActions];
+
+        }
+      }, "layer-list-node");
+      layerList.on("trigger-action", function (evt) {
+        //console.info(evt);
+
+        switch (evt.action.id) {
+          case "full-extent":
+            view.goTo(evt.item.layer.fullExtent);
+            break;
+          case "information":
+            window.open(evt.item.layer.url);
+            break;
+        }
+      }.bind(this));
 
       // LEGEND
       const legend = new Legend({ view: view }, "legend-node");
@@ -309,19 +357,21 @@ define([
       }, "print-node");
 
 
+      // USER SIGN IN //
+      this.initializeUserSignIn(view);
+
       // MAP DETAILS //
       this.displayMapDetails(view);
 
-      // TOGGLE LEFT PANE //
-      const toggleNode = dom.byId("toggle-left-panel");
-      on(toggleNode, "click", function () {
-        query(".ui-layout-left").toggleClass("hide");
-        query(".ui-layout-center").toggleClass("column-17");
-        query(".ui-layout-center").toggleClass("column-23");
-        domClass.toggle(toggleNode, "icon-ui-collapse");
-        domClass.toggle(toggleNode, "icon-ui-expand");
-      }.bind(this));
+      // INITIALIZE LAYER CHANGE NOTIFICATIONS //
+      this.initializeChangeNotifications(view);
 
+    },
+
+    /**
+     * USER SIGN IN
+     */
+    initializeUserSignIn: function (view) {
 
       // TOGGLE SIGN IN/OUT //
       let signInNode = dom.byId("sign-in-node");
@@ -365,10 +415,8 @@ define([
       }.bind(this);
 
       // CALCITE CLICK EVENT //
-      // ...WE COULD HAVE USED dojo/on //
-      let calciteClick = calcite.click();
-      calcite.addEvent(signInNode, calciteClick, userSignIn);
-      calcite.addEvent(signOutNode, calciteClick, userSignOut);
+      on(signInNode, "click", userSignIn);
+      on(signOutNode, "click", userSignOut);
 
       // PORTAL //
       this.portal = new Portal({});
@@ -376,9 +424,6 @@ define([
       IdentityManager.checkSignInStatus(this.portal.url).then(function () {
         userSignIn();
       }.bind(this));
-
-      // INITIALIZE LAYER CHANGE NOTIFICATIONS //
-      this.initializeChangeNotifications(view);
 
     },
 
@@ -735,7 +780,7 @@ define([
         }.bind(this));
       } else {
         // JOB IS NOT COMPLETE SO WE PAUSE AND CHECK AGAIN //
-        this.updateStatus("Checking for changes...", true);
+        this.updateStatus("Checking for changes...");
         setTimeout(function () {
           this._getJobInfo(statusUrl).then(this._getJobInfoCallback.bind(this));
         }.bind(this), 750);

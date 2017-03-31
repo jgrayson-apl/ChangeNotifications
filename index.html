@@ -5,19 +5,22 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, user-scalable=no">
+    <link rel="stylesheet" href="//s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-rc.1/css/calcite-web.min.css">
     <link rel="stylesheet" href="//js.arcgis.com/4.3/esri/css/main.css">
     <link rel="stylesheet" href="./css/boilerplate.css">
-    <link rel="stylesheet" href="//s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-rc.1/css/calcite-web.min.css">
-    <script type="text/javascript" src="//s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-rc.1/js/calcite-web.min.js"></script>
     <script type="text/javascript" src="./js/dojoConfig.js"></script>
     <script type="text/javascript" src="//js.arcgis.com/4.3/"></script>
     <script type="text/javascript">
       require([
         "boilerplate",
+        "//s3-us-west-1.amazonaws.com/patterns.esri.com/files/calcite-web/1.0.0-rc.2/js/calcite-web.min.js",
         "dojo/text!config/config.json",
         "dojo/text!boilerplate/settings.json",
         "application"
-      ], function (Boilerplate, configSettings, boilerplateSettings, app) {
+      ], function (Boilerplate, calcite, configSettings, boilerplateSettings, app) {
+
+        calcite.init();
+
         new Boilerplate(JSON.parse(configSettings), JSON.parse(boilerplateSettings)).then(function (boilerplateResponse) {
           const exampleApp = new app();
           exampleApp.init(boilerplateResponse);
@@ -147,19 +150,13 @@
           <div class="panel panel-white panel-no-border panel-no-padding container-height">
             <div class="tabs-transparent js-tab-group trailer-half">
               <nav class="tab-nav">
-                <a class="tab-title js-tab is-active">Legend</a>
+                <a class="tab-title js-tab is-active">Change</a>
                 <a class="tab-title js-tab">Layers</a>
-                <a class="tab-title js-tab">Change</a>
                 <a class="tab-title js-tab">Print</a>
               </nav>
               <section class="tab-contents">
-                <article class="tab-section js-tab-section  is-active">
-                  <div id="legend-node"></div>
-                </article>
-                <article class="tab-section js-tab-section">
-                  <div id="layer-list-node"></div>
-                </article>
-                <article class="tab-section js-tab-section padding-1">
+
+                <article class="tab-section js-tab-section padding-1 is-active">
                   <div id="changes-node">
                     <div class="trailer-half avenir-bold">Change Notifications</div>
                     <div class="panel trailer-1">
@@ -167,9 +164,9 @@
                         Layer:
                         <select id="changeLayerSelect" class="select-full"></select>
                         <span class="avenir-italic text-dark-gray font-size--3">
-                          <span>Showing change since</span>
-                          <span id="last-update-label"></span>
-                        </span>
+                                          <span>Showing change since</span>
+                                          <span id="last-update-label"></span>
+                                        </span>
                         <div class="right">
                           <a id="reset-changes-link" class="text-blue font-size--3" href="#" title="Reset the time from which to display changes...">Reset time to now</a>
                         </div>
@@ -191,21 +188,28 @@
                     </div>
                   </div>
                 </article>
+
+                <article class="tab-section js-tab-section">
+                  <div class="panel panel-white panel-no-padding panel-no-border">
+                    <div id="layer-list-node"></div>
+                  </div>
+                  <label class="panel leader-half">
+                    <span class="text-blue">Legend</span>
+                    <div id="legend-node"></div>
+                  </label>
+                </article>
+
                 <article class="tab-section js-tab-section">
                   <div id="print-node"></div>
                 </article>
+
               </section>
             </div>
           </div>
         </div>
 
-        <!-- TOGGLE LEFT PANEL -->
-        <div id="toggle-left-panel-node" class="column-1 padding-left-quarter padding-right-quarter">
-          <span id="toggle-left-panel" class="icon-ui-expand" title="Toggle Left Panel"></span>
-        </div>
-
         <!-- CENTER PANEL -->
-        <div class="column-17 padding-left-quarter ui-layout ui-layout-center">
+        <div class="column-18 padding-left-quarter ui-layout ui-layout-center">
           <div id="viewDiv" class="container-height"></div>
         </div>
 
