@@ -363,6 +363,9 @@ define([
       // MAP DETAILS //
       this.displayMapDetails(view);
 
+      // INITIALIZE PLACES //
+      this.initializePlaces(view);
+
       // INITIALIZE LAYER CHANGE NOTIFICATIONS //
       this.initializeChangeNotifications(view);
 
@@ -448,6 +451,62 @@ define([
         id: item.id
       });
       dom.byId("current-map-card-description").innerHTML = item.description;
+
+    },
+
+    /**
+     *
+     * @param view
+     */
+    initializePlaces: function (view) {
+
+      const placesContainer = dom.byId("places-node");
+
+      if(view.map.presentation && view.map.presentation.slides && (view.map.presentation.slides.length > 0)) {
+        // SLIDES //
+        view.map.presentation.slides.forEach(function (slide) {
+
+          const slideNode = domConstruct.create("div", { className: "places-node" }, placesContainer);
+          domConstruct.create("div", { className: "places-title", innerHTML: slide.title.text }, slideNode);
+          domConstruct.create("img", { className: "places-thumbnail", src: slide.thumbnail.url }, slideNode);
+
+          on(slideNode, "click", function () {
+            query(".places-node").removeClass("selected");
+            domClass.add(slideNode, "selected");
+
+            slide.applyTo(view, {
+              animate: true,
+              speedFactor: 0.5,
+              easing: "in-out-cubic"   // linear, in-cubic, out-cubic, in-out-cubic, in-expo, out-expo, in-out-expo
+            });
+
+          }.bind(this));
+        });
+
+        view.on("layerview-create", function (evt) {
+          slides.forEach(function (slide) {
+            slide.visibleLayers.add({ id: evt.layer.id });
+          }.bind(this));
+        }.bind(this));
+
+      } else if(view.map.bookmarks && view.map.bookmarks.length > 0) {
+        // BOOKMARKS //
+        view.map.bookmarks.forEach(function (bookmark) {
+
+          const bookmarkNode = domConstruct.create("div", { className: "places-node" }, placesContainer);
+          domConstruct.create("div", { className: "places-title", innerHTML: bookmark.name }, bookmarkNode);
+
+          on(bookmarkNode, "click", function () {
+            query(".places-node").removeClass("selected");
+            domClass.add(bookmarkNode, "selected");
+            view.goTo(bookmark.extent);
+          }.bind(this));
+
+        }.bind(this));
+
+      } else {
+        domConstruct.create("div", { className: "text-light-gray avenir-italic", innerHTML: "No places available in this map" }, placesContainer);
+      }
 
     },
 
